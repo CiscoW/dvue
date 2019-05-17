@@ -107,6 +107,7 @@ def handle(self, record):
             self.emit(record)
         finally:
             unlock(f)
+            f.close()
 
     return rv
 
