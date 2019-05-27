@@ -10,11 +10,11 @@ from myapp.models import Book
 
 
 # Create your views here.
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def add_book(request):
     response = {}
     try:
-        book = Book(book_name=request.GET.get('book_name'))
+        book = Book(book_name=json.loads(request.body)['book_name'])
         book.save()
         response['msg'] = 'success'
         response['error_num'] = 0
