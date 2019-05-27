@@ -38,7 +38,7 @@ class PyFeign(object):
             def wrapper(self, **kwargs):
                 # 此处的self是被装饰类的
                 uri = path.format(**kwargs)
-                params = re.findall(r'\{(\w+)\}', path)
+                params = re.findall(r'{(\w+)}', path)
                 for param in params:
                     del kwargs[param]
                     # locals()[param] = kwargs.get(param)
@@ -57,7 +57,7 @@ class PyFeign(object):
             def wrapper(self, **kwargs):
                 # 此处的self是被装饰类的
                 uri = path.format(**kwargs)
-                params = re.findall(r'\{(\w+)\}', path)
+                params = re.findall(r'{(\w+)}', path)
                 for param in params:
                     del kwargs[param]
 
@@ -75,7 +75,7 @@ class PyFeign(object):
             def wrapper(self, **kwargs):
                 # 此处的self是被装饰类的
                 uri = path.format(**kwargs)
-                params = re.findall(r'\{(\w+)\}', path)
+                params = re.findall(r'{(\w+)}', path)
                 for param in params:
                     del kwargs[param]
 
@@ -107,6 +107,10 @@ class Test(object):
     def test_post(self, data):
         pass
 
+    @PyFeign.get("/getBookNum/{book_name}")
+    def get_book_num(self, book_name):
+        pass
+
 
 if __name__ == '__main__':
     import json
@@ -119,3 +123,6 @@ if __name__ == '__main__':
     print(response_get.text)
     response_post = test.test_post(data=json.dumps({"book_name": "未来简史"}))
     print(response_post.text)
+
+    r = test.get_book_num(book_name="未来简史")
+    print(json.loads(r.text))
