@@ -30,57 +30,76 @@ class PyFeign(object):
 
         return wrapper
 
+    # 被装饰器装饰的函数中有默认参数时，需要将默认参数注入到新的方法中
+    @staticmethod
+    def get_func_default_parameter_value(func):
+        # 针对 func(a, b=1, *, c) 类的情况此方法失效
+        default_parameter_value = {}
+        if func.__defaults__:
+            for i in range(-1, -len(func.__defaults__) - 1, -1):
+                default_parameter_value[func.__code__.co_varnames[i]] = func.__defaults__[i]
+
+        return default_parameter_value
+
+    # 对uri 的解析是通用的 封装在一个方法中
+    @staticmethod
+    def get_uri(path, **kwargs):
+        # 此处的self是被装饰类的
+        uri = path.format(**kwargs)
+        params = re.findall(r'{(\w+)}', path)
+        for param in params:
+            del kwargs[param]
+            # locals()[param] = kwargs.get(param)
+        return uri, kwargs
+
+    # 总方法
     @staticmethod
     def request(path):
 
         def decorator(func):
             @wraps(func)
             def wrapper(self, **kwargs):
-                # 此处的self是被装饰类的
-                uri = path.format(**kwargs)
-                params = re.findall(r'{(\w+)}', path)
-                for param in params:
-                    del kwargs[param]
-                    # locals()[param] = kwargs.get(param)
+                uri, kwargs = PyFeign.get_uri(path, **kwargs)
                 url = self.root + uri
 
-                return requests.request(url=url, **kwargs)
+                default_parameter_value = PyFeign.get_func_default_parameter_value(func)
+
+                return requests.request(url=url, **default_parameter_value, **kwargs)
 
             return wrapper
 
         return decorator
 
+    # get方法
     @staticmethod
     def get(path):
         def decorator(func):
             @wraps(func)
             def wrapper(self, **kwargs):
-                # 此处的self是被装饰类的
-                uri = path.format(**kwargs)
-                params = re.findall(r'{(\w+)}', path)
-                for param in params:
-                    del kwargs[param]
-
+                uri, kwargs = PyFeign.get_uri(path, **kwargs)
                 url = self.root + uri
-                return requests.get(url=url, **kwargs)
+
+                default_parameter_value = PyFeign.get_func_default_parameter_value(func)
+
+                return requests.get(url=url, **default_parameter_value, **kwargs)
 
             return wrapper
 
         return decorator
 
+    # post方法
     @staticmethod
     def post(path):
         def decorator(func):
             @wraps(func)
             def wrapper(self, **kwargs):
                 # 此处的self是被装饰类的
-                uri = path.format(**kwargs)
-                params = re.findall(r'{(\w+)}', path)
-                for param in params:
-                    del kwargs[param]
-
+                uri, kwargs = PyFeign.get_uri(path, **kwargs)
                 url = self.root + uri
-                return requests.post(url=url, **kwargs)
+
+                default_parameter_value = PyFeign.get_func_default_parameter_value(func)
+
+                return requests.post(url=url, **default_parameter_value, **kwargs)
 
             return wrapper
 
