@@ -46,6 +46,13 @@ def show_books(request):
     return JsonResponse(response)
 
 
+@require_http_methods(["GET"])
+def get_book_num(request, book_name):
+    books = Book.objects.filter(book_name=book_name)
+
+    return JsonResponse({"该书数的数量": len(books)})
+
+
 def test_log():
     modify_record_logger.info("""
         teshshshifahsafnakjfnjdsajfkhdsajhfjsahfjhajhfdjahfjdsahjfd
