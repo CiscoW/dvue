@@ -3,10 +3,11 @@ import os
 import shutil
 import logging.handlers
 from logging import Handler
+from logging.handlers import BaseRotatingHandler
 from logging.handlers import RotatingFileHandler
 from logging.handlers import TimedRotatingFileHandler
-from dvue.filelock import lock
-from dvue.filelock import unlock
+from .filelock import lock
+from .filelock import unlock
 
 
 class RotatingFileHandlerPlus(RotatingFileHandler):
@@ -112,6 +113,29 @@ def handle(self, record):
     return rv
 
 
-setattr(Handler, 'handle', handle)
+# handle上加锁有点晚 加载emit上会更好些
+def emit(self, record):
+    """
+    Emit a record.
+
+    Output the record to the file, catering for rollover as described
+    in doRollover().
+    """
+    try:
+        f = open("lock.file", "a")
+        lock(f)
+        if self.shouldRollover(record):
+            self.doRollover()
+        logging.FileHandler.emit(self, record)
+    except Exception:
+        self.handleError(record)
+
+    finally:
+        unlock(f)
+        f.close()
+
+
+# setattr(Handler, 'handle', handle)
+setattr(BaseRotatingHandler, 'emit', emit)
 logging.handlers.RotatingFileHandlerPlus = RotatingFileHandlerPlus
 logging.handlers.TimedRotatingFileHandlerPlus = TimedRotatingFileHandlerPlus
