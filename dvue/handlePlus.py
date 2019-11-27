@@ -71,7 +71,7 @@ class TimedRotatingFileHandlerPlus(TimedRotatingFileHandler):
         dfn = self.rotation_filename(self.baseFilename + "." +
                                      time.strftime(self.suffix, timeTuple))
         if os.path.exists(dfn):
-            # 如果文件存在说明其他进程已经做过了日志分割，因为不能移除该文件
+            # 如果文件存在说明其他进程已经做过了日志分割，因此不能移除该文件
             if not self.delay:
                 self.stream = self._open()
 
